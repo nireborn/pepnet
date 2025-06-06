@@ -216,7 +216,7 @@ for length in range(5,15,2):
                     if val_loss < best_val_loss:
                         print(f"保存验证loss: {val_loss:.4f}")
                         print(f"保存验证acc: {val_acc:.4f}")
-                        model_cla.save_weights(os.path.join(save_dir, "{}.weights.h5".format("model")))
+                        model_cla.save_weights(os.path.join(save_dir + "../" +  "{}.weights.h5".format("model")))
                         best_val_loss = val_loss
                         print("最佳验证损失:", best_val_loss)
 
