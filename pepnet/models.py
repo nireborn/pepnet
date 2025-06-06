@@ -177,7 +177,7 @@ def load_predictor_model(model_type, checkpoint_path, mask_zero=False):
         num_layers = 4
         num_heads = 8
         dropout = 0
-        vocab_size = 22
+        vocab_size = 23  # 改为23
         embedding_dim = 128
         model = pepnet.models.TransformerEncoder(
             num_layers=num_layers,
@@ -195,27 +195,27 @@ def load_predictor_model(model_type, checkpoint_path, mask_zero=False):
             kernel_initializer=tf.keras.initializers.GlorotNormal(),
             bias_initializer=tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.05)
         )
-    fake_batch = np.array([[21, 20, 14, 8, 9, 13, 10, 9, 16, 17, 3, 1, 2, 15]])
+    fake_batch = np.array([[21, 20, 14, 8, 9, 13, 10, 9, 16, 17, 3, 1, 2, 15]])# 修改
     model(fake_batch, training=False)  # build model in TF
     model.summary()
     model.load_weights(checkpoint_path)  # load weights
     return model
 
 
-def prediction(data_path_ppc, protein_sequence, generated_dir, checkpoint_dir='weights/', predictor_model_type='transformer'):
+def prediction(length,data_path_ppc, protein_sequence, generated_dir, checkpoint_dir='weights/', predictor_model_type='transformer'):
     # 根据模型类型选择集成模型
     if not os.path.exists(generated_dir):
         os.mkdir(generated_dir)
     if predictor_model_type == 'transformer':
-        ensembles = ['transformer_0_cla/',
-                     'transformer_1_cla/',
-                     'transformer_2_cla/',
-                     'transformer_3_cla/',
-                     'transformer_4_cla/'
+        ensembles = [f'transformer_0_cla_{length}/',
+                     f'transformer_1_cla_{length}/',
+                     f'transformer_2_cla_{length}/',
+                     f'transformer_3_cla_{length}/',
+                     f'transformer_4_cla_{length}/'
                      ]
 
     # ppc_pn
-    ppc_pn = pepnet.data.DataLoader(data_path_ppc, dataset='ppc_pn', seed=0, model=predictor_model_type, test_split=0.2)
+    ppc_pn = pepnet.data.DataLoader(data_path_ppc, dataset='ppc_normal', seed=0, model=predictor_model_type, test_split=0.2)
 
     # 直接将输入的蛋白序列转为肽段（长度为13）
     peptides = [protein_sequence]
@@ -243,7 +243,7 @@ def prediction(data_path_ppc, protein_sequence, generated_dir, checkpoint_dir='w
         predictions.append(y_hat)
         if e_num == (len(ensembles) - 1):  # save embeddings from last ensemble model for plotting later
             embeddings = model.last_layer_embeddings
-            np.save(os.path.join(generated_dir, 'embeddings.npy'), np.array(embeddings))
+            np.save(os.path.join(generated_dir, f'embeddings_{length}.npy'), np.array(embeddings))
     # 将所有预测结果堆叠在一起
     predictions = np.stack(np.array(predictions))
     print("predictions：", predictions)
